@@ -30,6 +30,7 @@ const describe = (platform) => {
 
 const manifest = {
   schemaVersion: 1,
+  status: "published",
   version: env.FFMPEG_MOBILE_VERSION,
   tag,
   repository,
