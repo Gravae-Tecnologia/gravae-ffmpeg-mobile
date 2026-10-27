@@ -1,0 +1,16 @@
+diff --git a/scripts/apple/libpng.sh b/scripts/apple/libpng.sh
+index 7efedb1..730c8d8 100755
+--- a/scripts/apple/libpng.sh
++++ b/scripts/apple/libpng.sh
+@@ -14,6 +14,11 @@ esac
+ # ALWAYS CLEAN THE PREVIOUS BUILD
+ make distclean 2>/dev/null 1>/dev/null
+ 
++# Xcode 16.3 removed fp.h. libpng fixed this upstream by using math.h.
++if [[ -f "${BASEDIR}"/src/"${LIB_NAME}"/pngpriv.h ]]; then
++  ${SED_INLINE} "s|#      include <fp.h>|#      include <math.h>|g" "${BASEDIR}"/src/"${LIB_NAME}"/pngpriv.h
++fi
++
+ # REGENERATE BUILD FILES IF NECESSARY OR REQUESTED
+ if [[ ! -f "${BASEDIR}"/src/"${LIB_NAME}"/configure ]] || [[ ${RECONF_libpng} -eq 1 ]] || [[ $(is_gnu_config_files_up_to_date) == "0" ]]; then
+ 

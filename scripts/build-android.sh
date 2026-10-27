@@ -23,6 +23,7 @@ if [[ "$detected_ndk" != "$ANDROID_NDK_VERSION" ]]; then
 fi
 
 cd "$SOURCE_DIR"
+set +e
 ./android.sh \
   --api-level="$ANDROID_API_LEVEL" \
   --disable-arm-v7a-neon \
@@ -34,6 +35,14 @@ cd "$SOURCE_DIR"
   --enable-fribidi \
   --enable-openssl \
   --no-link-time-optimization
+build_status=$?
+set -e
+
+if [[ "$build_status" -ne 0 ]]; then
+  echo "[ffmpeg-mobile] Build Android falhou. Últimas linhas do build.log:" >&2
+  tail -200 "$SOURCE_DIR/build.log" >&2 || true
+  exit "$build_status"
+fi
 
 "$SCRIPT_DIR/validate-capabilities.sh" android
 "$SCRIPT_DIR/validate-license.sh" "$SOURCE_DIR/build.log"

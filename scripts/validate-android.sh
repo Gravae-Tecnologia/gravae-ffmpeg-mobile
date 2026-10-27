@@ -22,7 +22,7 @@ for abi in armeabi-v7a arm64-v8a x86_64; do
   fi
 done
 
-readelf_bin="$(find "${ANDROID_NDK_ROOT:?}" -type f -name llvm-readelf -perm -111 -print -quit)"
+readelf_bin="$(find -L "${ANDROID_NDK_ROOT:?}" -type f -name llvm-readelf -perm -111 -print -quit)"
 if [[ -z "$readelf_bin" ]]; then
   echo "[ffmpeg-mobile] llvm-readelf não encontrado no NDK." >&2
   exit 1

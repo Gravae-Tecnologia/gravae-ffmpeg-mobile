@@ -11,49 +11,32 @@ if [[ "$platform" != "android" && "$platform" != "ios" ]]; then
   exit 1
 fi
 
-if [[ "$platform" == "android" ]]; then
-  nm_bin="$(find "${ANDROID_NDK_ROOT:?}" -type f -name llvm-nm -perm -111 -print -quit)"
-  nm_args=(--defined-only)
-  codec_symbol=ff_h264_mediacodec_encoder
-else
-  nm_bin="$(xcrun --find nm)"
-  nm_args=(-gU)
-  codec_symbol=ff_h264_videotoolbox_encoder
-fi
-
-if [[ -z "$nm_bin" ]]; then
-  echo "[ffmpeg-mobile] nm não encontrado para $platform." >&2
+components_file="$SOURCE_DIR/src/ffmpeg/config_components.h"
+if [[ ! -f "$components_file" ]]; then
+  echo "[ffmpeg-mobile] config_components.h não foi gerado pelo FFmpeg." >&2
   exit 1
 fi
 
-mapfile_compat() {
-  local array_name="$1"
-  shift
-  local value
-  eval "$array_name=()"
-  while IFS= read -r value; do
-    [[ -n "$value" ]] || continue
-    eval "$array_name+=(\"\$value\")"
-  done < <("$@")
-}
-
-mapfile_compat codec_archives find "$SOURCE_DIR/prebuilt" -type f -name libavcodec.a -print
-mapfile_compat filter_archives find "$SOURCE_DIR/prebuilt" -type f -name libavfilter.a -print
-mapfile_compat format_archives find "$SOURCE_DIR/prebuilt" -type f -name libavformat.a -print
-
-if [[ "${#codec_archives[@]}" -eq 0 || "${#filter_archives[@]}" -eq 0 || "${#format_archives[@]}" -eq 0 ]]; then
-  echo "[ffmpeg-mobile] Bibliotecas estáticas do FFmpeg não foram encontradas." >&2
-  exit 1
-fi
-
-required_codec_symbols=("$codec_symbol" ff_aac_encoder)
-required_filter_symbols=(
-  ff_vf_scale ff_vf_crop ff_vf_pad ff_vf_fps ff_vf_setpts ff_vf_tpad
-  ff_vf_trim ff_af_atempo ff_af_volume ff_af_apad ff_af_atrim ff_af_afade
-  ff_af_afftdn ff_vf_xfade ff_af_acrossfade ff_af_adelay ff_af_amix
-  ff_vf_drawbox ff_vf_drawtext ff_vf_tile
+required_components=(
+  AAC_ENCODER
+  SCALE_FILTER CROP_FILTER PAD_FILTER FPS_FILTER SETPTS_FILTER TPAD_FILTER
+  TRIM_FILTER ATEMPO_FILTER VOLUME_FILTER APAD_FILTER ATRIM_FILTER AFADE_FILTER
+  AFFTDN_FILTER XFADE_FILTER ACROSSFADE_FILTER ADELAY_FILTER AMIX_FILTER
+  DRAWBOX_FILTER DRAWTEXT_FILTER TILE_FILTER
+  HLS_DEMUXER MOV_DEMUXER MOV_MUXER CONCAT_DEMUXER HTTPS_PROTOCOL
 )
-required_format_symbols=(ff_hls_demuxer ff_mov_demuxer ff_mov_muxer ff_concat_demuxer ff_https_protocol)
+
+if [[ "$platform" == "android" ]]; then
+  required_components+=(H264_MEDIACODEC_ENCODER)
+  binary_root="$SOURCE_DIR/prebuilt"
+  expected_slices=3
+  binary_pattern='libavcodec.so'
+else
+  required_components+=(H264_VIDEOTOOLBOX_ENCODER)
+  binary_root="$SOURCE_DIR/prebuilt/bundle-apple-xcframework-ios"
+  expected_slices=2
+  binary_pattern='libavcodec'
+fi
 
 report="$WORK_DIR/capabilities-$platform.txt"
 mkdir -p "$WORK_DIR"
@@ -61,31 +44,27 @@ mkdir -p "$WORK_DIR"
 printf 'platform=%s\nffmpeg=%s\nwrapper_commit=%s\n' \
   "$platform" "$FFMPEG_SOURCE_TAG" "$FFMPEG_KIT_COMMIT" >> "$report"
 
-validate_archive() {
-  local kind="$1"
-  local archive="$2"
-  shift 2
-  local symbols symbol
+for component in "${required_components[@]}"; do
+  if ! grep -Eq "^#define CONFIG_${component} 1$" "$components_file"; then
+    echo "[ffmpeg-mobile] Capacidade ausente no FFmpeg compilado: CONFIG_$component" >&2
+    exit 1
+  fi
+  printf 'component:%s\n' "$(printf '%s' "$component" | tr '[:upper:]' '[:lower:]')" >> "$report"
+done
 
-  symbols="$($nm_bin "${nm_args[@]}" "$archive" 2>/dev/null || true)"
-  for symbol in "$@"; do
-    if ! grep -Eq "(^|[[:space:]_])${symbol}([[:space:]]|$)" <<< "$symbols"; then
-      echo "[ffmpeg-mobile] $kind ausente em $archive: $symbol" >&2
-      exit 1
-    fi
-    printf '%s:%s\n' "$kind" "${symbol#ff_}" >> "$report"
-  done
-}
+slice_count="$(find "$binary_root" -type f -name "$binary_pattern" | wc -l | tr -d ' ')"
+if [[ "$slice_count" -ne "$expected_slices" ]]; then
+  echo "[ffmpeg-mobile] Esperadas $expected_slices slices de $binary_pattern; encontradas $slice_count." >&2
+  exit 1
+fi
 
-for archive in "${codec_archives[@]}"; do
-  validate_archive encoder "$archive" "${required_codec_symbols[@]}"
-done
-for archive in "${filter_archives[@]}"; do
-  validate_archive filter "$archive" "${required_filter_symbols[@]}"
-done
-for archive in "${format_archives[@]}"; do
-  validate_archive format "$archive" "${required_format_symbols[@]}"
-done
+while IFS= read -r binary; do
+  if [[ ! -s "$binary" ]]; then
+    echo "[ffmpeg-mobile] Binário nativo vazio: $binary" >&2
+    exit 1
+  fi
+  printf 'binary:%s\n' "${binary#"$SOURCE_DIR/prebuilt/"}" >> "$report"
+done < <(find "$binary_root" -type f -name "$binary_pattern" | sort)
 
 sort -u -o "$report" "$report"
-echo "[ffmpeg-mobile] Capacidades reais de $platform validadas em ${#codec_archives[@]} arquitetura(s)."
+echo "[ffmpeg-mobile] Capacidades e $slice_count slices reais de $platform validadas."

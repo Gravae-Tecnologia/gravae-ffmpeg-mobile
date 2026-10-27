@@ -12,6 +12,7 @@ require_command xcrun
 "$SCRIPT_DIR/prepare-source.sh"
 
 cd "$SOURCE_DIR"
+set +e
 ./ios.sh \
   --xcframework \
   --target="$IOS_DEPLOYMENT_TARGET" \
@@ -31,6 +32,14 @@ cd "$SOURCE_DIR"
   --enable-freetype \
   --enable-fribidi \
   --enable-openssl
+build_status=$?
+set -e
+
+if [[ "$build_status" -ne 0 ]]; then
+  echo "[ffmpeg-mobile] Build iOS falhou. Últimas linhas do build.log:" >&2
+  tail -200 "$SOURCE_DIR/build.log" >&2 || true
+  exit "$build_status"
+fi
 
 "$SCRIPT_DIR/validate-capabilities.sh" ios
 "$SCRIPT_DIR/validate-license.sh" "$SOURCE_DIR/build.log"

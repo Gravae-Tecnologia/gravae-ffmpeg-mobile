@@ -1,0 +1,15 @@
+diff --git a/scripts/android/libiconv.sh b/scripts/android/libiconv.sh
+index 10e40aa..7398d73 100755
+--- a/scripts/android/libiconv.sh
++++ b/scripts/android/libiconv.sh
+@@ -15,6 +15,10 @@ if [[ ! -d "${BASEDIR}"/src/"${LIB_NAME}"/gnulib ]]; then
+   ./gitsub.sh checkout gnulib 485d983b7795548fb32b12fbe8370d40789e88c4 || return 1
+ fi
+ 
++# The Android library does not ship generated HTML manuals. Avoid making
++# groff a build dependency while preserving the upstream manpage sources.
++${SED_INLINE} 's|^MAN2HTML = groff -mandoc -Thtml$|MAN2HTML = cat|g' "${BASEDIR}"/src/"${LIB_NAME}"/Makefile.devel || return 1
++
+ # ALWAYS CLEAN THE PREVIOUS BUILD
+ make distclean 2>/dev/null 1>/dev/null
+ 

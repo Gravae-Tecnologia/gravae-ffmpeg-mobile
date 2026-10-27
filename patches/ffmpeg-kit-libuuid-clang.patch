@@ -1,0 +1,17 @@
+diff --git a/scripts/android/libuuid.sh b/scripts/android/libuuid.sh
+index 9f4f62a..4bc9174 100755
+--- a/scripts/android/libuuid.sh
++++ b/scripts/android/libuuid.sh
+@@ -1,5 +1,12 @@
+ #!/bin/bash
+ 
++# Modern Clang rejects the implicit flock declaration. libuuid's gen_uuid.c
++# reads HAVE_SYS_FILE_H before c.h includes config.h, so include it first.
++if ! grep -q 'FFMPEG_KIT_CONFIG_HEADER_FIX' "${BASEDIR}"/src/"${LIB_NAME}"/gen_uuid.c; then
++  perl -0pi -e 's/#define _SVID_SOURCE/#define _SVID_SOURCE\n\n\/* FFMPEG_KIT_CONFIG_HEADER_FIX *\/\n#ifdef HAVE_CONFIG_H\n#include "config.h"\n#endif/' \
++    "${BASEDIR}"/src/"${LIB_NAME}"/gen_uuid.c || return 1
++fi
++
+ # ALWAYS CLEAN THE PREVIOUS BUILD
+ make distclean 2>/dev/null 1>/dev/null
+ 

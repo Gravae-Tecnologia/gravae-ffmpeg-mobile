@@ -30,6 +30,7 @@ const describe = (platform) => {
 
 const manifest = {
   schemaVersion: 1,
+  recipeVersion: 1,
   status: "published",
   version: env.FFMPEG_MOBILE_VERSION,
   tag,
@@ -38,6 +39,13 @@ const manifest = {
     version: env.FFMPEG_SOURCE_TAG,
     kitCommit: env.FFMPEG_KIT_COMMIT,
     license: "LGPL-3.0-or-later",
+  },
+  build: {
+    androidNdk: env.ANDROID_NDK_VERSION,
+    androidApiLevel: Number(env.ANDROID_API_LEVEL),
+    androidAbis: env.ANDROID_ABIS.split(','),
+    iosDeploymentTarget: env.IOS_DEPLOYMENT_TARGET,
+    iosArchitectures: env.IOS_ARCHITECTURES.split(','),
   },
   artifacts: {
     android: describe("android"),

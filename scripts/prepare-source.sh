@@ -28,7 +28,11 @@ else
 fi
 
 "$SCRIPT_DIR/patch-tls-hostname.sh" "$SOURCE_DIR/src/ffmpeg"
+"$SCRIPT_DIR/patch-clang-bitfields.sh" "$SOURCE_DIR/src/ffmpeg"
 "$SCRIPT_DIR/patch-android-16kb.sh" "$SOURCE_DIR"
+"$SCRIPT_DIR/patch-libpng-xcode.sh" "$SOURCE_DIR"
+"$SCRIPT_DIR/patch-libiconv-docs.sh" "$SOURCE_DIR"
+"$SCRIPT_DIR/patch-libuuid-clang.sh" "$SOURCE_DIR"
 
 actual_commit="$(git -C "$SOURCE_DIR" rev-parse HEAD)"
 if [[ "$actual_commit" != "$FFMPEG_KIT_COMMIT" ]]; then

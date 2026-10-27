@@ -22,6 +22,20 @@ cp "$WORK_DIR/capabilities-ios.txt" "$stage/metadata/capabilities-ios.txt"
 cp "$ROOT_DIR/THIRD_PARTY_NOTICES.md" "$stage/metadata/THIRD_PARTY_NOTICES.md"
 cp "$WORK_DIR/cacert.pem" "$stage/metadata/cacert.pem"
 cp "$SOURCE_DIR/build.log" "$stage/metadata/ios-build.log"
+: > "$stage/metadata/linkage-ios.txt"
+
+while IFS= read -r framework; do
+  framework_name="$(basename "$framework" .framework)"
+  binary="$framework/$framework_name"
+  if [[ -f "$binary" ]]; then
+    file "$binary" >> "$stage/metadata/linkage-ios.txt"
+  fi
+done < <(find "$framework_dir" -type d -name '*.framework' | sort)
+
+if ! grep -q 'dynamically linked shared library' "$stage/metadata/linkage-ios.txt"; then
+  echo "[ffmpeg-mobile] O tipo de linkage dos frameworks iOS não pôde ser validado." >&2
+  exit 1
+fi
 
 if ! find "$stage/ios/Frameworks" -maxdepth 1 -type d -name '*.xcframework' | grep -q .; then
   echo "[ffmpeg-mobile] Pacote iOS vazio." >&2

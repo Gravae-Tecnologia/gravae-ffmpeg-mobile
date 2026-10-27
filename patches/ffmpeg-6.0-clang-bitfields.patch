@@ -1,0 +1,17 @@
+diff --git a/fftools/ffmpeg_mux_init.c b/fftools/ffmpeg_mux_init.c
+index 69c4a9091c..6ecf9a5c71 100644
+--- a/fftools/ffmpeg_mux_init.c
++++ b/fftools/ffmpeg_mux_init.c
+@@ -269,9 +269,9 @@ static int enc_stats_init(OutputStream *ost, EncStats *es, int pre,
+     static const struct {
+         enum EncStatsType  type;
+         const char        *str;
+-        int                pre_only:1;
+-        int                post_only:1;
+-        int                need_input_data:1;
++        unsigned           pre_only:1;
++        unsigned           post_only:1;
++        unsigned           need_input_data:1;
+     } fmt_specs[] = {
+         { ENC_STATS_FILE_IDX,       "fidx"                      },
+         { ENC_STATS_STREAM_IDX,     "sidx"                      },
