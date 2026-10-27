@@ -30,7 +30,7 @@ jurídica antes da primeira publicação.
 Android exige Linux, Android SDK e o NDK configurado em `ANDROID_NDK_ROOT`:
 
 Dependências de sistema: `autoconf`, `automake`, `libtool`, `pkg-config`,
-`nasm`, `yasm`, `cmake`, `ninja`, `meson`, `autopoint` e `texinfo`.
+`nasm`, `yasm`, `cmake`, `ninja`, `meson`, `autopoint`, `texinfo` e `gperf`.
 
 ```bash
 ./scripts/build-android.sh

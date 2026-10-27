@@ -33,7 +33,7 @@ jobs:
           test "$installed" = true
           test -f "$ANDROID_HOME/ndk/28.2.13676358/source.properties"
       - name: Ferramentas nativas
-        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool pkg-config nasm yasm cmake ninja-build meson autopoint texinfo
+        run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool pkg-config nasm yasm cmake ninja-build meson autopoint texinfo gperf
       - name: Build Android
         run: |
           export ANDROID_SDK_ROOT="$ANDROID_HOME"
