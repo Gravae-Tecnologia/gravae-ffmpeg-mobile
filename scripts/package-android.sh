@@ -36,6 +36,7 @@ cat > "$stage/android/maven/$artifact_path/$ANDROID_MAVEN_ARTIFACT-$ANDROID_MAVE
 POM
 cp "$ROOT_DIR/config/build.env" "$stage/metadata/build.env"
 cp "$ROOT_DIR/config/required-capabilities.txt" "$stage/metadata/required-capabilities.txt"
+cp "$WORK_DIR/capabilities-android.txt" "$stage/metadata/capabilities-android.txt"
 cp "$ROOT_DIR/THIRD_PARTY_NOTICES.md" "$stage/metadata/THIRD_PARTY_NOTICES.md"
 cp "$WORK_DIR/cacert.pem" "$stage/metadata/cacert.pem"
 cp "$SOURCE_DIR/build.log" "$stage/metadata/android-build.log"

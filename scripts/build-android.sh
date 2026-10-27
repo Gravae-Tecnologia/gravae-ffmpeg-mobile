@@ -29,10 +29,14 @@ cd "$SOURCE_DIR"
   --disable-x86 \
   --enable-android-media-codec \
   --enable-android-zlib \
+  --enable-fontconfig \
+  --enable-freetype \
+  --enable-fribidi \
   --enable-openssl \
   --no-link-time-optimization
 
-"$SCRIPT_DIR/package-android.sh"
+"$SCRIPT_DIR/validate-capabilities.sh" android
 "$SCRIPT_DIR/validate-license.sh" "$SOURCE_DIR/build.log"
+"$SCRIPT_DIR/package-android.sh"
 "$SCRIPT_DIR/validate-android.sh" "$DIST_DIR/gravae-ffmpeg-android-$FFMPEG_MOBILE_VERSION.tar.gz"
 "$SCRIPT_DIR/package-sources.sh" --from-existing

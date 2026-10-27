@@ -18,6 +18,7 @@ mkdir -p "$stage/ios/Frameworks" "$stage/metadata"
 find "$framework_dir" -maxdepth 1 -type d -name '*.xcframework' -exec cp -R {} "$stage/ios/Frameworks/" \;
 cp "$ROOT_DIR/config/build.env" "$stage/metadata/build.env"
 cp "$ROOT_DIR/config/required-capabilities.txt" "$stage/metadata/required-capabilities.txt"
+cp "$WORK_DIR/capabilities-ios.txt" "$stage/metadata/capabilities-ios.txt"
 cp "$ROOT_DIR/THIRD_PARTY_NOTICES.md" "$stage/metadata/THIRD_PARTY_NOTICES.md"
 cp "$WORK_DIR/cacert.pem" "$stage/metadata/cacert.pem"
 cp "$SOURCE_DIR/build.log" "$stage/metadata/ios-build.log"

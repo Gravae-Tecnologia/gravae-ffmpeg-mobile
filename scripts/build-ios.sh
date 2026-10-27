@@ -27,8 +27,12 @@ cd "$SOURCE_DIR"
   --enable-ios-audiotoolbox \
   --enable-ios-zlib \
   --enable-ios-bzip2 \
+  --enable-fontconfig \
+  --enable-freetype \
+  --enable-fribidi \
   --enable-openssl
 
-"$SCRIPT_DIR/package-ios.sh"
+"$SCRIPT_DIR/validate-capabilities.sh" ios
 "$SCRIPT_DIR/validate-license.sh" "$SOURCE_DIR/build.log"
+"$SCRIPT_DIR/package-ios.sh"
 "$SCRIPT_DIR/validate-ios.sh" "$DIST_DIR/gravae-ffmpeg-ios-$FFMPEG_MOBILE_VERSION.tar.gz"
