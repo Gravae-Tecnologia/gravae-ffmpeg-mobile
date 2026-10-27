@@ -1,0 +1,31 @@
+diff --git a/libavformat/tls_openssl.c b/libavformat/tls_openssl.c
+index 8bf766c..1ef6e8d 100644
+--- a/libavformat/tls_openssl.c
++++ b/libavformat/tls_openssl.c
+@@ -34,6 +34,7 @@
+ #include <openssl/bio.h>
+ #include <openssl/ssl.h>
+ #include <openssl/err.h>
++#include <openssl/x509v3.h>
+
+ static int openssl_init;
+
+@@ -313,8 +314,17 @@ static int tls_open(URLContext *h, const char *uri, int flags, AVDictionary **op
+     bio->ptr = p;
+ #endif
+     SSL_set_bio(p->ssl, bio, bio);
+-    if (!c->listen && !c->numerichost)
++    if (!c->listen && !c->numerichost) {
+         SSL_set_tlsext_host_name(p->ssl, c->host);
++        if (c->verify) {
++            X509_VERIFY_PARAM *param = SSL_get0_param(p->ssl);
++            X509_VERIFY_PARAM_set_hostflags(param, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
++            if (!X509_VERIFY_PARAM_set1_host(param, c->host, 0)) {
++                ret = AVERROR(EIO);
++                goto fail;
++            }
++        }
++    }
+     ret = c->listen ? SSL_accept(p->ssl) : SSL_connect(p->ssl);
+     if (ret == 0) {
+         av_log(h, AV_LOG_ERROR, "Unable to negotiate TLS/SSL session\n");

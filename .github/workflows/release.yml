@@ -1,0 +1,42 @@
+name: release
+
+on:
+  push:
+    tags:
+      - mobile-ffmpeg-*
+
+permissions:
+  contents: write
+
+jobs:
+  android:
+    uses: ./.github/workflows/build-android.yml
+  ios:
+    uses: ./.github/workflows/build-ios.yml
+  publish:
+    needs: [android, ios]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        with:
+          path: downloaded
+      - name: Reunir pacotes
+        run: |
+          mkdir -p dist
+          find downloaded -type f -name '*.tar.gz' -exec cp {} dist/ \;
+      - name: Criar manifesto e checksums
+        run: |
+          node scripts/create-release-manifest.mjs
+          cd dist
+          sha256sum *.tar.gz artifact-manifest.json > SHA256SUMS
+      - name: Publicar release imutável
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --title "$GITHUB_REF_NAME" \
+            --notes "Build LGPL reproduzível do FFmpeg para os apps Gravae/Replayme. Consulte artifact-manifest.json e o pacote de fontes desta release." \
+            --verify-tag

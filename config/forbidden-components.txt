@@ -1,0 +1,8 @@
+--enable-gpl
+--enable-nonfree
+libx264
+libx265
+libfdk_aac
+libvidstab
+rubberband
+xvidcore
