@@ -19,8 +19,19 @@ jobs:
           java-version: "17"
       - name: Instalar NDK fixado
         run: |
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;28.2.13676358"
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses >/dev/null || true
+          installed=false
+          for attempt in 1 2 3; do
+            if "$SDKMANAGER" --sdk_root="$ANDROID_HOME" "ndk;28.2.13676358"; then
+              installed=true
+              break
+            fi
+            echo "Tentativa $attempt de instalar o NDK falhou; aguardando retry..." >&2
+            sleep 10
+          done
+          test "$installed" = true
+          test -f "$ANDROID_HOME/ndk/28.2.13676358/source.properties"
       - name: Ferramentas nativas
         run: sudo apt-get update && sudo apt-get install -y autoconf automake libtool pkg-config nasm yasm cmake ninja-build meson autopoint texinfo
       - name: Build Android
